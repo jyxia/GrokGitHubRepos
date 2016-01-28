@@ -29,10 +29,9 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     {
       GitHubAPIManager.sharedInstance.oauthTokenCompletionHandler = {
         (error) -> Void in
-        println("handlin stuff")
         if let receivedError = error
         {
-          println(error)
+          print(receivedError)
           // TODO: handle error
           // TODO: issue: don't get unauthorized if we try this query
           GitHubAPIManager.sharedInstance.startOAuth2Login()
@@ -52,20 +51,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
   
   func fetchMyRepos()
   {
-    println(GitHubAPIManager.sharedInstance.alamofireManager().session.configuration.HTTPAdditionalHeaders)
+     print(GitHubAPIManager.sharedInstance.alamofireManager().session.configuration.HTTPAdditionalHeaders)
     Repo.getMyRepos( { (fetchedRepos, error) in
-      println("got repos:")
       if let receivedError = error
       {
-        println(error)
+        print(receivedError)
         GitHubAPIManager.sharedInstance.OAuthToken = nil
         // TODO: display error
       }
       else
       {
         self.repos = fetchedRepos
-        println(self.repos)
-        
         self.tableView.reloadData()
       }
     })
@@ -82,7 +78,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
   }
   
   func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath) as! UITableViewCell
+    let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
     
     let repo = repos?[indexPath.row]
     cell.textLabel?.text = repo?.description

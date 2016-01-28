@@ -14,32 +14,40 @@ class GitHubAPIManager
 {
   static let sharedInstance = GitHubAPIManager()
   
+  // replace your clientID and clientSecret here
   var clientID: String = "123456"
   var clientSecret: String = "0b0b0b0b0b0"
   
   var OAuthToken: String?
-    {
+  {
     set
     {
       if let valueToSave = newValue
       {
-        let error = Locksmith.saveData(["token": valueToSave], forUserAccount: "github")
-        if let errorReceived = error
+        do
         {
-          Locksmith.deleteDataForUserAccount("github")
+          try Locksmith.saveData(["token": valueToSave], forUserAccount: "github")
+        } catch _
+        {
+          do
+          {
+            try Locksmith.deleteDataForUserAccount("github")
+          } catch _ {}
         }
-        addSessionHeader("Authorization", value: "token \(valueToSave)")
       }
       else
       {
-        Locksmith.deleteDataForUserAccount("github")
+        do
+        {
+          try Locksmith.deleteDataForUserAccount("github")
+        } catch _{}
         removeSessionHeaderIfExists("Authorization")
       }
     }
     get
     {
       // try to load from keychain
-      let (dictionary, error) = Locksmith.loadDataForUserAccount("github")
+      let dictionary = Locksmith.loadDataForUserAccount("github")
       if let token =  dictionary?["token"] as? String {
         return token
       }
@@ -58,7 +66,6 @@ class GitHubAPIManager
   func addSessionHeader(key: String, value: String)
   {
     let manager = Alamofire.Manager.sharedInstance
-    println(manager.session.configuration.HTTPAdditionalHeaders)
     if var sessionHeaders = manager.session.configuration.HTTPAdditionalHeaders as? Dictionary<String, String>
     {
       sessionHeaders[key] = value
@@ -70,7 +77,6 @@ class GitHubAPIManager
         key: value
       ]
     }
-    println(manager.session.configuration.HTTPAdditionalHeaders)
   }
   
   func removeSessionHeaderIfExists(key: String)
@@ -114,7 +120,7 @@ class GitHubAPIManager
   
   func processOauthStep1Response(url: NSURL)
   {
-    println(url)
+    print(url)
     let components = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)
     var code:String?
     if let queryItems = components?.queryItems
@@ -133,26 +139,25 @@ class GitHubAPIManager
       let tokenParams = ["client_id": clientID, "client_secret": clientSecret, "code": receivedCode]
       // don't use sharedManager because we don't want to pass an old, invalid oauthToken if we have one
       Alamofire.request(.POST, getTokenPath, parameters: tokenParams)
-        .responseString { (request, response, results, error) in
-          if let anError = error
+        .responseString { response in
+          if let anError = response.result.error
           {
-            println(anError)
+            print(anError)
             if let completionHandler = self.oauthTokenCompletionHandler
             {
-              let noAuthError = NSError(domain: AlamofireErrorDomain, code: -1, userInfo: [NSLocalizedDescriptionKey: "Could not obtain an Oauth code", NSLocalizedRecoverySuggestionErrorKey: "Please retry your request"])
+              let noAuthError = NSError(domain: "AlamofireErrorDomain", code: -1, userInfo: [NSLocalizedDescriptionKey: "Could not obtain an Oauth code", NSLocalizedRecoverySuggestionErrorKey: "Please retry your request"])
               let defaults = NSUserDefaults.standardUserDefaults()
               defaults.setBool(false, forKey: "loadingOauthToken")
               completionHandler(noAuthError)
             }
             return
           }
-          println(results)
-          if let receivedResults = results
+          if let receivedResults = response.result.value
           {
-            let resultParams:Array<String> = split(receivedResults) {$0 == "&"}
+            let resultParams:Array<String> = receivedResults.characters.split{$0 == "&"}.map(String.init)
             for param in resultParams
             {
-              let resultsSplit = split(param) { $0 == "=" }
+              let resultsSplit = param.characters.split{ $0 == "=" }.map(String.init)
               if (resultsSplit.count == 2)
               {
                 let key = resultsSplit[0].lowercaseString // access_token, scope, token_type
@@ -160,14 +165,15 @@ class GitHubAPIManager
                 switch key {
                 case "access_token":
                   self.OAuthToken = value
+                  print("token value: \(value)")
                 case "scope":
                   // TODO: verify scope
-                  println("SET SCOPE")
+                  print("SET SCOPE")
                 case "token_type":
                   // TODO: verify is bearer
-                  println("CHECK IF BEARER")
+                  print("CHECK IF BEARER")
                 default:
-                  println("got more than I expected from the oauth token exchange")
+                  print("got more than I expected from the oauth token exchange")
                 }
               }
             }
@@ -189,7 +195,7 @@ class GitHubAPIManager
             if let completionHandler = self.oauthTokenCompletionHandler
             {
               // TODO: create error "no token" with some way to handle it
-              let noAuthError = NSError(domain: AlamofireErrorDomain, code: -1, userInfo: [NSLocalizedDescriptionKey: "Could not obtain an Oauth token", NSLocalizedRecoverySuggestionErrorKey: "Please retry your request"])
+              let noAuthError = NSError(domain: "AlamofireErrorDomain", code: -1, userInfo: [NSLocalizedDescriptionKey: "Could not obtain an Oauth token", NSLocalizedRecoverySuggestionErrorKey: "Please retry your request"])
               completionHandler(noAuthError)
             }
           }
@@ -202,5 +208,5 @@ class GitHubAPIManager
       defaults.setBool(false, forKey: "loadingOauthToken")
     }
   }
-  
+q
 }

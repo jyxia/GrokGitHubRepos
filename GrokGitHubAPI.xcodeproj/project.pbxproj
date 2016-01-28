@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B87987D91D7BEC533187F562 /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06E9F5F2964E6AF642F2FE89 /* Pods.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		B87987D91D7BEC533187F562 /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06E9F5F2964E6AF642F2FE89 /* Pods.framework */; };
 		CF793DC41B598BB400A28F0E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF793DC31B598BB400A28F0E /* AppDelegate.swift */; };
 		CF793DC61B598BB400A28F0E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF793DC51B598BB400A28F0E /* ViewController.swift */; };
 		CF793DC91B598BB400A28F0E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CF793DC71B598BB400A28F0E /* Main.storyboard */; };
@@ -189,6 +189,8 @@
 		CF793DB61B598BB300A28F0E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0720;
+				LastSwiftUpdateCheck = 0720;
 				LastUpgradeCheck = 0640;
 				ORGANIZATIONNAME = "Teak Mobile Inc";
 				TargetAttributes = {
